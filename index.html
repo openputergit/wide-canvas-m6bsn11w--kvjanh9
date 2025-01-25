@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SchoolConnect</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+        .slide-fade-enter-active {
+            transition: all 0.3s ease-out;
+        }
+        .slide-fade-leave-active {
+            transition: all 0.3s cubic-bezier(1, 0.5, 0.8, 1);
+        }
+        .slide-fade-enter-from,
+        .slide-fade-leave-to {
+            transform: translateX(20px);
+            opacity: 0;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div id="app" class="min-h-screen">
+        <!-- Sidebar -->
+        <div class="fixed top-0 left-0 h-full w-64 bg-blue-600 text-white p-4 transform transition-transform duration-200 ease-in-out"
+             :class="{'translate-x-0': sidebarOpen, '-translate-x-64': !sidebarOpen}">
+            <div class="flex items-center justify-between mb-8">
+                <h1 class="text-2xl font-bold">SchoolConnect</h1>
+                <button @click="toggleSidebar" class="lg:hidden">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+            <nav>
+                <ul class="space-y-2">
+                    <li v-for="item in menuItems" :key="item.name"
+                        @click="currentView = item.view"
+                        class="p-2 rounded-lg cursor-pointer hover:bg-blue-700"
+                        :class="{'bg-blue-700': currentView === item.view}">
+                        <i :class="item.icon" class="mr-2"></i>
+                        {{ item.name }}
+                    </li>
+                </ul>
+            </nav>
+        </div>
+
+        <!-- Main Content -->
+        <div class="lg:ml-64 p-4">
+            <!-- Mobile Header -->
+            <div class="lg:hidden flex items-center justify-between mb-4">
+                <button @click="toggleSidebar" class="text-blue-600">
+                    <i class="bi bi-list text-2xl"></i>
+                </button>
+                <h1 class="text-xl font-bold">SchoolConnect</h1>
+                <div class="w-8"></div>
+            </div>
+
+            <!-- Dynamic Content -->
+            <div class="grid gap-4">
+                <!-- Dashboard -->
+                <div v-if="currentView === 'dashboard'" class="grid gap-4">
+                    <div class="bg-white p-4 rounded-lg shadow">
+                        <h2 class="text-xl font-semibold mb-4">Welcome back, {{ userRole }}!</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="bg-blue-100 p-4 rounded-lg">
+                                <h3 class="font-semibold">Upcoming Events</h3>
+                                <p class="text-sm text-gray-600">3 new events this week</p>
+                            </div>
+                            <div class="bg-green-100 p-4 rounded-lg">
+                                <h3 class="font-semibold">Assignments</h3>
+                                <p class="text-sm text-gray-600">2 pending submissions</p>
+                            </div>
+                            <div class="bg-yellow-100 p-4 rounded-lg">
+                                <h3 class="font-semibold">Messages</h3>
+                                <p class="text-sm text-gray-600">5 unread messages</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Academics -->
+                <div v-if="currentView === 'academics'" class="grid gap-4">
+                    <div class="bg-white p-4 rounded-lg shadow">
+                        <h2 class="text-xl font-semibold mb-4">Academics</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="border p-4 rounded-lg">
+                                <h3 class="font-semibold mb-2">Today's Schedule</h3>
+                                <ul class="space-y-2">
+                                    <li v-for="class in schedule" :key="class.time" class="flex justify-between">
+                                        <span>{{ class.subject }}</span>
+                                        <span class="text-gray-600">{{ class.time }}</span>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="border p-4 rounded-lg">
+                                <h3 class="font-semibold mb-2">Assignments</h3>
+                                <ul class="space-y-2">
+                                    <li v-for="assignment in assignments" :key="assignment.id" 
+                                        class="flex items-center justify-between">
+                                        <span>{{ assignment.title }}</span>
+                                        <span class="text-sm text-red-500">Due: {{ assignment.due }}</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Communication -->
+                <div v-if="currentView === 'communication'" class="bg-white p-4 rounded-lg shadow">
+                    <h2 class="text-xl font-semibold mb-4">Messages</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="border-r border-gray-200 pr-4">
+                            <h3 class="font-semibold mb-2">Contacts</h3>
+                            <ul class="space-y-2">
+                                <li v-for="contact in contacts" :key="contact.id"
+                                    class="flex items-center p-2 hover:bg-gray-100 rounded cursor-pointer">
+                                    <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white">
+                                        {{ contact.name[0] }}
+                                    </div>
+                                    <span class="ml-2">{{ contact.name }}</span>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="col-span-2">
+                            <div class="h-96 bg-gray-50 rounded p-4">
+                                <p class="text-center text-gray-500">Select a contact to start chatting</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp } = Vue
+
+        createApp({
+            data() {
+                return {
+                    sidebarOpen: true,
+                    currentView: 'dashboard',
+                    userRole: 'Student',
+                    menuItems: [
+                        { name: 'Dashboard', view: 'dashboard', icon: 'bi bi-grid-1x2-fill' },
+                        { name: 'Academics', view: 'academics', icon: 'bi bi-book-fill' },
+                        { name: 'Communication', view: 'communication', icon: 'bi bi-chat-dots-fill' },
+                        { name: 'Events', view: 'events', icon: 'bi bi-calendar-event-fill' },
+                        { name: 'Alumni', view: 'alumni', icon: 'bi bi-people-fill' },
+                        { name: 'Settings', view: 'settings', icon: 'bi bi-gear-fill' }
+                    ],
+                    schedule: [
+                        { subject: 'Mathematics', time: '9:00 AM' },
+                        { subject: 'Science', time: '10:30 AM' },
+                        { subject: 'English', time: '1:00 PM' }
+                    ],
+                    assignments: [
+                        { id: 1, title: 'Math Homework', due: 'Tomorrow' },
+                        { id: 2, title: 'Science Project', due: 'Next Week' }
+                    ],
+                    contacts: [
+                        { id: 1, name: 'John Teacher' },
+                        { id: 2, name: 'Mary Parent' },
+                        { id: 3, name: 'Steve Admin' }
+                    ]
+                }
+            },
+            methods: {
+                toggleSidebar() {
+                    this.sidebarOpen = !this.sidebarOpen
+                }
+            },
+            mounted() {
+                // Check screen size on mount
+                this.sidebarOpen = window.innerWidth >= 1024
+                
+                // Update sidebar state on window resize
+                window.addEventListener('resize', () => {
+                    this.sidebarOpen = window.innerWidth >= 1024
+                })
+            }
+        }).mount('#app')
+    </script>
+<script>document.body.addEventListener('wheel', e => { if (!e.ctrlKey) return; e.preventDefault(); return }, { passive: false })</script>
+	</body>
+</html>
